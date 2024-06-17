@@ -3,28 +3,32 @@
 '''
 from pymongo import MongoClient
 
-
 def print_nginx_request_logs(nginx_collection):
-    '''Prints stats about Nginx request logs.
-    '''
-    print('{} logs'.format(nginx_collection.count_documents({})))
-    print('Methods:')
-    methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
-    for method in methods:
-        req_count = len(list(nginx_collection.find({'method': method})))
-        print('\tmethod {}: {}'.format(method, req_count))
-    status_checks_count = len(list(
-        nginx_collection.find({'method': 'GET', 'path': '/status'})
-    ))
-    print('{} status check'.format(status_checks_count))
+    # Count total number of logs
+    total_logs = nginx_collection.count_documents({})
+    print(f"{total_logs} logs")
 
+    # Define HTTP methods
+    methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
+    print("Methods:")
+    for method in methods:
+        method_count = nginx_collection.count_documents({"method": method})
+        print(f"\tmethod {method}: {method_count}")
+
+    # Count status check requests
+    status_count = nginx_collection.count_documents({"method": "GET", "path": "/status"})
+    print(f"{status_count} status check")
 
 def run():
-    '''Provides some stats about Nginx logs stored in MongoDB.
-    '''
-    client = MongoClient('mongodb://127.0.0.1:27017')
-    print_nginx_request_logs(client.logs.nginx)
+    # Connect to MongoDB
+    client = MongoClient('localhost', 27017)
 
+    # Access the 'logs' database and the 'nginx' collection
+    db = client.logs
+    nginx_collection = db.nginx
 
-if __name__ == '__main__':
+    # Print statistics
+    print_nginx_request_logs(nginx_collection)
+
+if __name__ == "__main__":
     run()
